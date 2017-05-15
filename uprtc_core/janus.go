@@ -82,10 +82,11 @@ type RegisterData struct {
 }
 
 type joinMsgHeader struct {
-	Reqeust  string `json:"request"`
-	ClientId uint64 `json:"client_id"`
-	Ptype    string `json:"ptype"`
-	SecKey   string `json:"sec_key"`
+	Reqeust     string `json:"request"`
+	ClientId    uint64 `json:"client_id"`
+	Ptype       string `json:"ptype"`
+	SecKey      string `json:"sec_key"`
+	DataChannel bool   `json:"datachannel"`
 }
 type joinRequestJson struct {
 	Uprtc   string        `json:"uprtc"`
@@ -290,6 +291,7 @@ func (obj *JanusData) Join(role int) {
 		joinBody.Ptype = "publisher"
 	} else if role == 2 {
 		// listner
+		joinBody.DataChannel = true
 		joinBody.Ptype = "listener"
 	}
 	var joinSig joinRequestJson
