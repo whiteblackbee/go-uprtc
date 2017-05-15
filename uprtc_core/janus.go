@@ -225,7 +225,7 @@ func (obj *JanusData) EventHandle() {
 	resp, err := obj.httpReq.LongPoll(longpoll)
 	if err != nil {
 		// is down
-		obj.retryCount += obj.retryCount
+		obj.retryCount += 1
 		if obj.retryCount > 3 {
 			// down
 			obj.connected = false
