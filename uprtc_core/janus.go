@@ -235,6 +235,9 @@ func (obj *JanusData) EventHandle() {
 		}
 		return
 	}
+	if obj.connected == false {
+		return
+	}
 	//fmt.Println("eventhandle get %s", resp)
 	obj.ProcessRecv([]byte(resp))
 	obj.EventHandle()
@@ -483,7 +486,9 @@ func (obj *JanusData) prepareDataChannel(channel *webrtc.DataChannel) {
 		// 	time.Sleep(1 * time.Second)
 		// }
 		//startChat()
-		obj.SendDataChannelData()
+		if 1 == obj.ptype {
+			obj.SendDataChannelData()
+		}
 	}
 	channel.OnClose = func() {
 		fmt.Println("Data Channel closed.")
@@ -607,10 +612,11 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 	n := len(buffer)
 	//	for {
 	obj.retryCount = 0
-	fmt.Println("Signal receive: %s", string(buffer))
+	//fmt.Println("Signal receive: %s", string(buffer))
 
 	typ := gjson.GetBytes(buffer[:n], JANUS).String()
 	if typ == EVENT {
+		fmt.Println("Signal receive: %s", string(buffer))
 		// sessionID := gjson.GetBytes(buffer[:n], "session_id").Int()
 		// transaction := gjson.GetBytes(buffer[:n], TRANSACTION).String()
 		// sender := gjson.GetBytes(buffer[:n], "sender").Int()
@@ -634,7 +640,12 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 			obj.status = JoinSuccess
 			obj.StartPlugin()
 		} else if respone == "event" {
-
+			result := gjson.GetBytes(buffer[:n], "plugindata.data.error").String()
+			if result != "" {
+				// get error
+				obj.connected = false
+				fmt.Println("error get uprtc", result)
+			}
 		}
 		jsep := gjson.GetBytes(buffer[:n], "jsep").String()
 		if jsep != "" {
@@ -657,6 +668,7 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 		// 	ch <- buffer[:n]
 		// }
 	} else if typ == SUCCESS {
+		fmt.Println("Signal receive: %s", string(buffer))
 		//	transaction := gjson.GetBytes(buffer[:n], TRANSACTION).String()
 		getSessionID := gjson.GetBytes(buffer[:n], "session_id").Int()
 		sessionID := gjson.GetBytes(buffer[:n], "data.id").Int()
@@ -690,9 +702,11 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 		//	fmt.Println(" success type: %v", obj.transMap[transaction])
 
 	} else if typ == TIMEOUT {
-		sessionID := gjson.GetBytes(buffer[:n], "session_id").Int()
-		fmt.Println("timeout session_id: %v", sessionID)
+		fmt.Println("Signal receive: %s", string(buffer))
+		// sessionID := gjson.GetBytes(buffer[:n], "session_id").Int()
+		// fmt.Println("timeout session_id: %v", sessionID)
 	} else if typ == ACK {
+		fmt.Println("Signal receive: %s", string(buffer))
 		//	transaction := gjson.GetBytes(buffer[:n], TRANSACTION).String()
 
 		//	fmt.Println("type: %v, transaction: %v", typ, transaction)
@@ -702,6 +716,7 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 	} else if typ == KEEPALIVE {
 		obj.retryCount = 0
 	} else if typ == "webrtcup" {
+		fmt.Println("Signal receive: %s", string(buffer))
 		obj.retryCount = 0
 	} else
 	/*if typ == EVENT {
@@ -713,6 +728,7 @@ func (obj *JanusData) ProcessRecv(buffer []byte) {
 		}
 	} else */
 	{
+		fmt.Println("Signal receive: %s", string(buffer))
 		fmt.Println("receive respone unkwon !!!!")
 		// transaction := gjson.GetBytes(buffer[:n], TRANSACTION).String()
 
