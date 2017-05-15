@@ -3,6 +3,7 @@ package janus
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -435,6 +436,7 @@ func (obj *JanusData) SendTrickComplete() {
 	if nil != err {
 		obj.connected = false
 		fmt.Println("gateway is down ", err)
+		os.Exit(1)
 	}
 	//fmt.Println("join get %s", resp)
 	obj.ProcessRecv([]byte(resp))
